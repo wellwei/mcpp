@@ -3056,9 +3056,21 @@ prepare_build(bool print_fingerprint,
         for (std::size_t i = 1; i < packages.size(); ++i) {
             auto& pname = packages[i].manifest.package.name;
             auto [req, depDefaultFeatures] = aggregatedRequest(i);
-            if (!req.empty() && !packages[i].manifest.featuresMap.empty()) {
+if (!req.empty()) {
                 for (auto& f : req) {
                     if (packages[i].manifest.featuresMap.contains(f)) continue;
+
+                    constexpr std::string_view backendPrefix = "backend-";
+                    if (std::string_view(f).starts_with(backendPrefix)) {
+                        return std::unexpected(std::format(
+                            "dependency '{}' does not support backend '{}' "
+                            "(missing feature '{}')",
+                            pname, std::string_view(f).substr(backendPrefix.size()), f));
+                    }
+
+                    // packages without [features] silently accept undeclared non-backend features
+                    if (packages[i].manifest.featuresMap.empty()) continue;
+
                     auto msg = std::format(
                         "dependency '{}' does not declare requested feature '{}' "
                         "in its [features] table", pname, f);
