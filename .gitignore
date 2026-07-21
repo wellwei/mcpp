@@ -22,3 +22,6 @@ doctor.log
 *.ddi
 compile_commands.json
 .cache/
+bmi/
+config.toml
+registry/
